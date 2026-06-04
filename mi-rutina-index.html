@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WORKOUT OS">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="description" content="Rutina de fuerza para principiantes — 5 días">
+<title>WORKOUT OS</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&display=swap');
+
+:root {
+  --bg:      #0a0a0f;
+  --bg2:     #0e0e18;
+  --bg3:     #12121c;
+  --panel:   #14141e;
+  --border:  #1c1c2e;
+  --acc:     #00f5c4;
+  --acc2:    #7b2fff;
+  --acc3:    #ff3c6e;
+  --warm:    #ffb347;
+  --text:    #cccce8;
+  --dim:     #52527a;
+  --faint:   #24243a;
+  --mono:    'Share Tech Mono', monospace;
+  --head:    'Orbitron', sans-serif;
+  --body:    'Rajdhani', sans-serif;
+  --r:       6px;
+  --glow:    0 0 18px rgba(0,245,196,0.22);
+  --glow2:   0 0 18px rgba(123,47,255,0.25);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100dvh;overscroll-behavior:none}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.05) 3px,rgba(0,0,0,0.05) 4px);pointer-events:none;z-index:9998}
+
+/* TOP BAR */
+.topbar{position:sticky;top:0;z-index:200;background:rgba(10,10,15,0.97);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.logo{font-family:var(--head);font-size:12px;letter-spacing:3px;color:var(--acc);text-shadow:0 0 14px rgba(0,245,196,0.5);white-space:nowrap}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.week-badge{font-family:var(--mono);font-size:9px;color:var(--dim);background:var(--bg3);border:1px solid var(--border);padding:3px 7px;border-radius:3px;white-space:nowrap}
+.save-dot{width:6px;height:6px;border-radius:50%;background:var(--faint);transition:background 0.3s;flex-shrink:0}
+.save-dot.saving{background:var(--warm)}
+.save-dot.saved{background:var(--acc)}
+
+/* SETUP BANNER */
+.setup-banner{background:rgba(123,47,255,0.1);border:1px solid rgba(123,47,255,0.35);margin:10px 12px 0;border-radius:var(--r);padding:12px 14px;display:none}
+.setup-banner.show{display:block}
+.setup-title{font-family:var(--head);font-size:10px;letter-spacing:2px;color:var(--acc2);margin-bottom:8px}
+.setup-steps{font-family:var(--mono);font-size:10px;color:var(--dim);line-height:2;white-space:pre-line}
+.setup-close{font-family:var(--mono);font-size:9px;color:var(--acc);margin-top:10px;cursor:pointer;display:inline-block;letter-spacing:1px}
+
+/* CONTROLS ROW */
+.controls-row{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.week-lbl{font-family:var(--mono);font-size:9px;color:var(--dim);white-space:nowrap}
+.week-sel{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px solid var(--border);color:var(--acc);border-radius:4px;padding:5px 8px;flex:1;max-width:130px}
+.week-sel option{background:var(--bg2);color:var(--text)}
+.saved-time{font-family:var(--mono);font-size:9px;color:var(--faint);margin-left:auto;white-space:nowrap}
+
+/* DAY TABS */
+.day-tabs{display:flex;overflow-x:auto;gap:4px;padding:8px 10px;background:var(--bg2);border-bottom:1px solid var(--border);scrollbar-width:none}
+.day-tabs::-webkit-scrollbar{display:none}
+.day-tab{flex-shrink:0;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--dim);background:var(--bg3);border:1px solid var(--border);padding:8px 12px;border-radius:4px;cursor:pointer;transition:all 0.2s;text-align:center;line-height:1.6}
+.day-tab.active{color:var(--bg);background:var(--acc);border-color:var(--acc);box-shadow:var(--glow)}
+.day-tab.done{border-color:var(--acc2);color:var(--acc2)}
+.day-tab.active.done{color:var(--bg)}
+
+/* PROGRESS BAR */
+.progress-bar{height:2px;background:var(--border);margin:0 12px 12px;border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--acc2),var(--acc));transition:width 0.5s;box-shadow:var(--glow)}
+
+/* DAY PANEL */
+.day-panel{display:none;padding:0 10px 100px}
+.day-panel.active{display:block}
+
+.day-header{margin:12px 0;padding:14px 16px;background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--acc);border-radius:var(--r)}
+.day-title{font-family:var(--head);font-size:13px;letter-spacing:2px;color:var(--acc);margin-bottom:3px}
+.day-sub{font-size:13px;color:var(--dim);letter-spacing:0.5px}
+.day-focus{margin-top:7px;font-size:11px;color:var(--acc2);font-family:var(--mono);letter-spacing:1px}
+
+/* EXERCISE CARD */
+.ex-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:border-color 0.25s}
+.ex-card.completed{border-color:rgba(0,245,196,0.35)}
+
+.ex-header{padding:13px 14px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;background:var(--bg3);user-select:none;-webkit-user-select:none}
+.ex-num{font-family:var(--mono);font-size:10px;color:var(--acc2);flex-shrink:0;margin-top:2px}
+.ex-info{flex:1;min-width:0}
+.ex-name{font-family:var(--body);font-weight:700;font-size:15px;color:var(--text);line-height:1.3}
+.ex-hint{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:5px;line-height:1.6}
+.ex-chevron{font-size:10px;color:var(--dim);flex-shrink:0;margin-top:3px;transition:transform 0.25s}
+.ex-card.open .ex-chevron{transform:rotate(180deg)}
+.ex-check{width:24px;height:24px;flex-shrink:0;border:2px solid var(--border);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;margin-top:1px}
+.ex-check.done{border-color:var(--acc);background:var(--acc);box-shadow:var(--glow)}
+.ex-check.done::after{content:'✓';color:var(--bg);font-size:13px;font-weight:900}
+
+/* BODY OF CARD (collapsible) */
+.ex-body{display:none}
+.ex-card.open .ex-body{display:block}
+
+/* SERIES */
+.series-wrap{padding:12px 14px}
+.series-lbl{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:2px;margin-bottom:10px;text-transform:uppercase}
+.col-heads{display:grid;grid-template-columns:28px 1fr 1fr 60px 36px;gap:5px;margin-bottom:6px}
+.col-h{font-family:var(--mono);font-size:9px;color:var(--faint);text-transform:uppercase;text-align:center;letter-spacing:1px}
+.col-h:first-child{text-align:left}
+.set-row{display:grid;grid-template-columns:28px 1fr 1fr 60px 36px;gap:5px;align-items:center;margin-bottom:7px}
+.set-n{font-family:var(--mono);font-size:11px;color:var(--acc2);text-align:center}
+
+input[type="number"]{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:14px;padding:9px 4px;text-align:center;-webkit-appearance:none;-moz-appearance:textfield;outline:none;transition:border-color 0.2s}
+input[type="number"]:focus{border-color:var(--acc);box-shadow:0 0 0 2px rgba(0,245,196,0.08)}
+input[type="number"]::-webkit-inner-spin-button,input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none}
+select{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 2px;text-align:center;outline:none;transition:border-color 0.2s;-webkit-appearance:none}
+select:focus{border-color:var(--acc)}
+select option{background:var(--bg2);color:var(--text)}
+
+.set-ok{width:32px;height:32px;background:var(--bg2);border:1px solid var(--border);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all 0.2s;flex-shrink:0;color:var(--dim)}
+.set-ok.on{background:rgba(0,245,196,0.1);border-color:var(--acc);color:var(--acc);box-shadow:var(--glow)}
+
+/* NOTES */
+.ex-notes-wrap{padding:0 14px 14px;border-top:1px solid var(--faint);margin-top:2px}
+.notes-lbl{font-family:var(--mono);font-size:9px;color:var(--faint);letter-spacing:2px;margin:10px 0 6px;text-transform:uppercase}
+textarea{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--dim);font-family:var(--mono);font-size:12px;padding:9px;resize:none;min-height:50px;outline:none;line-height:1.5;transition:border-color 0.2s;-webkit-appearance:none}
+textarea:focus{border-color:var(--acc2);color:var(--text)}
+textarea::placeholder{color:var(--faint)}
+
+/* CARDIO DAY */
+.cardio-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px}
+.cardio-title{font-family:var(--head);font-size:11px;letter-spacing:2px;color:var(--warm);margin-bottom:12px}
+.cardio-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.field-g{display:flex;flex-direction:column;gap:5px}
+.field-l{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:1px}
+.cardio-proto{font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.9}
+.timer-row{display:flex;align-items:center;gap:10px;margin-top:12px}
+.timer-disp{font-family:var(--head);font-size:30px;color:var(--acc);letter-spacing:4px;text-shadow:var(--glow);min-width:90px}
+.timer-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:9px 14px;border-radius:4px;cursor:pointer;transition:all 0.2s;letter-spacing:1px}
+.timer-btn:active{background:var(--acc);color:var(--bg);border-color:var(--acc)}
+
+/* REST POPUP */
+.rest-pop{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--panel);border:2px solid var(--acc);border-radius:10px;padding:14px 24px;z-index:300;box-shadow:var(--glow),0 8px 40px rgba(0,0,0,0.7);text-align:center;min-width:190px;display:none;animation:popIn 0.2s ease}
+.rest-pop.show{display:block}
+@keyframes popIn{from{transform:translateX(-50%) scale(0.85);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
+.rest-lbl{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:3px;margin-bottom:4px}
+.rest-num{font-family:var(--head);font-size:40px;color:var(--acc);text-shadow:var(--glow);line-height:1}
+.rest-skip{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:10px;cursor:pointer;letter-spacing:1px;padding:4px}
+
+/* BOTTOM BAR */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,15,0.98);border-top:1px solid var(--border);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:10px 12px;display:flex;gap:8px;z-index:200}
+.bottom-bar>*{flex-shrink:0}
+.btn-finish{flex:1;padding:15px;background:linear-gradient(135deg,var(--acc2),#4a10cc);border:none;border-radius:var(--r);color:#fff;font-family:var(--head);font-size:11px;letter-spacing:2px;cursor:pointer;box-shadow:var(--glow2);transition:opacity 0.2s}
+.btn-finish:active{opacity:0.75}
+.btn-copy{padding:15px 18px;background:var(--bg3);border:1px solid var(--acc);border-radius:var(--r);color:var(--acc);font-size:16px;cursor:pointer;transition:all 0.2s}
+.btn-copy:active{background:var(--acc);color:var(--bg)}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:500;display:none;align-items:flex-end;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.modal-bg.show{display:flex}
+.modal{width:100%;max-height:88dvh;background:var(--bg2);border-top:2px solid var(--acc);border-radius:14px 14px 0 0;padding:20px 14px 36px;overflow-y:auto;animation:slideUp 0.28s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-title{font-family:var(--head);font-size:12px;letter-spacing:2px;color:var(--acc);margin-bottom:14px;text-align:center}
+.modal-body{font-family:var(--mono);font-size:11px;color:var(--text);line-height:1.9;white-space:pre-wrap;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px;max-height:52dvh;overflow-y:auto}
+.modal-actions{display:flex;gap:8px;margin-top:14px}
+.m-btn{flex:1;padding:14px;border-radius:var(--r);font-family:var(--head);font-size:10px;letter-spacing:1px;cursor:pointer;border:none;transition:opacity 0.2s}
+.m-btn:active{opacity:0.75}
+.m-btn.prim{background:var(--acc);color:var(--bg)}
+.m-btn.sec{background:var(--bg3);border:1px solid var(--border);color:var(--text)}
+
+/* TOAST */
+.toast{position:fixed;top:58px;left:50%;transform:translateX(-50%);background:var(--acc);color:var(--bg);font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:8px 16px;border-radius:4px;z-index:600;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;font-weight:700}
+.toast.show{opacity:1}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+<body>
+
+<div class="topbar">
+  <span class="logo">⬡ WORKOUT OS</span>
+  <div class="topbar-right">
+    <div class="save-dot" id="saveDot"></div>
+    <span class="week-badge" id="weekBadge">S1</span>
+  </div>
+</div>
+
+<div class="setup-banner" id="setupBanner">
+  <div class="setup-title">📲 INSTALAR COMO APP</div>
+  <div class="setup-steps">iOS (Safari):
+1. Toca compartir ↑ → "Agregar a pantalla de inicio"
+
+Android (Chrome):
+1. Toca ⋮ → "Añadir a pantalla de inicio"
+
+Funciona sin internet una vez instalada.</div>
+  <span class="setup-close" onclick="closeBanner()">[ ENTENDIDO — NO MOSTRAR MÁS ]</span>
+</div>
+
+<div class="controls-row">
+  <span class="week-lbl">SEMANA</span>
+  <select class="week-sel" id="weekSel" onchange="onWeekChange()">
+    <option value="1">Semana 1</option><option value="2">Semana 2</option>
+    <option value="3">Semana 3</option><option value="4">Semana 4</option>
+    <option value="5">Semana 5</option><option value="6">Semana 6</option>
+    <option value="7">Semana 7</option><option value="8">Semana 8</option>
+  </select>
+  <span class="saved-time" id="savedTime"></span>
+</div>
+
+<div class="day-tabs" id="dayTabs">
+  <div class="day-tab active" onclick="switchDay(0)">LUN<br><span style="font-size:8px;opacity:0.6">TORSO A</span></div>
+  <div class="day-tab" onclick="switchDay(1)">MAR<br><span style="font-size:8px;opacity:0.6">PIERNA A</span></div>
+  <div class="day-tab" onclick="switchDay(2)">MIÉ<br><span style="font-size:8px;opacity:0.6">CARDIO</span></div>
+  <div class="day-tab" onclick="switchDay(3)">JUE<br><span style="font-size:8px;opacity:0.6">TORSO B</span></div>
+  <div class="day-tab" onclick="switchDay(4)">VIE<br><span style="font-size:8px;opacity:0.6">PIERNA B</span></div>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+
+<!-- Helper macro for a standard 2-set exercise -->
+<!-- ════ DAY 0 · LUNES · TORSO A ════ -->
+<div class="day-panel active" id="day-0">
+  <div class="day-header">
+    <div class="day-title">LUNES — TORSO A</div>
+    <div class="day-sub">Empuje · Tracción · Brazos</div>
+    <div class="day-focus">FOCO › Densidad + Pecho Superior</div>
+  </div>
+
+  <!-- 01 Press Inclinado Mancuernas -->
+  <div class="ex-card" id="d0e0">
+    <div class="ex-header" onclick="toggleCard('d0e0')"><span class="ex-num">01</span><div class="ex-info"><div class="ex-name">Press Inclinado con Mancuernas</div><div class="ex-hint">2 series · S1: 6-8 reps (Top Set) · S2: 10-12 reps (−15% peso)<br>🎯 Bajar despacio · pecho superior · sin rebotar</div></div><div class="ex-check" id="chk-d0e0" onclick="toggleCheck(event,'d0e0')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (kg)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="2.5" id="d0e0-0-p"><input type="number" placeholder="—" min="0" max="30" id="d0e0-0-r"><select id="d0e0-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e0',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="2.5" id="d0e0-1-p"><input type="number" placeholder="—" min="0" max="30" id="d0e0-1-r"><select id="d0e0-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e0',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas · ¿Rest pause? ¿Parciales?</div><textarea id="d0e0-notes" placeholder="Ej: 30kg S1 rir0 + rest pause 10s 1 rep · back-off 22.5kg..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 02 Jalón al Pecho + Dominadas -->
+  <div class="ex-card" id="d0e1">
+    <div class="ex-header" onclick="toggleCard('d0e1')"><span class="ex-num">02</span><div class="ex-info"><div class="ex-name">Jalón al Pecho (Polea)</div><div class="ex-hint">2 series · S1: 8-10 reps · S2: 12-15 reps<br>➕ 1 serie dominada amplia al fallo · codos abajo</div></div><div class="ex-check" id="chk-d0e1" onclick="toggleCheck(event,'d0e1')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (lb)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="5" id="d0e1-0-p"><input type="number" placeholder="—" min="0" max="30" id="d0e1-0-r"><select id="d0e1-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e1',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="5" id="d0e1-1-p"><input type="number" placeholder="—" min="0" max="30" id="d0e1-1-r"><select id="d0e1-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e1',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas · Dominadas al fallo</div><textarea id="d0e1-notes" placeholder="Ej: 180lb + 4 parciales · dominadas: 6 reps + 2 negativas..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 03 Remo con Apoyo -->
+  <div class="ex-card" id="d0e2">
+    <div class="ex-header" onclick="toggleCard('d0e2')"><span class="ex-num">03</span><div class="ex-info"><div class="ex-name">Remo con Apoyo (Mancuerna/Máquina)</div><div class="ex-hint">2 series · 10-12 reps · Retracción escapular al final<br>🎯 Espalda neutral · sin impulso lumbar</div></div><div class="ex-check" id="chk-d0e2" onclick="toggleCheck(event,'d0e2')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (kg)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="2.5" id="d0e2-0-p"><input type="number" placeholder="—" min="0" max="30" id="d0e2-0-r"><select id="d0e2-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e2',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="2.5" id="d0e2-1-p"><input type="number" placeholder="—" min="0" max="30" id="d0e2-1-r"><select id="d0e2-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e2',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas · ¿Rest pause?</div><textarea id="d0e2-notes" placeholder="Ej: 55kg rir0 + rest pause 5s 1 rep..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 04 Elevaciones Laterales Máquina x3 -->
+  <div class="ex-card" id="d0e3">
+    <div class="ex-header" onclick="toggleCard('d0e3')"><span class="ex-num">04</span><div class="ex-info"><div class="ex-name">Elevaciones Laterales en Máquina</div><div class="ex-hint">3 series · 12-15 reps · <strong>Siempre RIR 0-1</strong><br>🔥 No acumules RIR aquí · back-off en S3</div></div><div class="ex-check" id="chk-d0e3" onclick="toggleCheck(event,'d0e3')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (lb)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="5" id="d0e3-0-p"><input type="number" placeholder="—" min="0" max="30" id="d0e3-0-r"><select id="d0e3-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e3',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="5" id="d0e3-1-p"><input type="number" placeholder="—" min="0" max="30" id="d0e3-1-r"><select id="d0e3-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e3',1)">○</button></div>
+        <div class="set-row"><div class="set-n">S3</div><input type="number" placeholder="—" min="0" step="5" id="d0e3-2-p"><input type="number" placeholder="—" min="0" max="30" id="d0e3-2-r"><select id="d0e3-2-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e3',2)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas</div><textarea id="d0e3-notes" placeholder="Ej: S1-S2: 120lb · S3 back-off: 90lb 14 reps rir0..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 05 Katana Tríceps -->
+  <div class="ex-card" id="d0e4">
+    <div class="ex-header" onclick="toggleCard('d0e4')"><span class="ex-num">05</span><div class="ex-info"><div class="ex-name">Katana Tríceps (Polea)</div><div class="ex-hint">3 series · S1-S2: 10-12 reps · S3: 12-15 reps<br>🎯 Unilateral · codo fijo · extensión completa</div></div><div class="ex-check" id="chk-d0e4" onclick="toggleCheck(event,'d0e4')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (lb)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="2.5" id="d0e4-0-p"><input type="number" placeholder="—" min="0" max="30" id="d0e4-0-r"><select id="d0e4-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e4',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="2.5" id="d0e4-1-p"><input type="number" placeholder="—" min="0" max="30" id="d0e4-1-r"><select id="d0e4-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e4',1)">○</button></div>
+        <div class="set-row"><div class="set-n">S3</div><input type="number" placeholder="—" min="0" step="2.5" id="d0e4-2-p"><input type="number" placeholder="—" min="0" max="30" id="d0e4-2-r"><select id="d0e4-2-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e4',2)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas · Der/Izq por separado</div><textarea id="d0e4-notes" placeholder="Ej: 22lb der/izq rir0 · S3 back-off 11lb..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 06 Curl EZ -->
+  <div class="ex-card" id="d0e5">
+    <div class="ex-header" onclick="toggleCard('d0e5')"><span class="ex-num">06</span><div class="ex-info"><div class="ex-name">Curl EZ (Bíceps)</div><div class="ex-hint">2 series · S1: 8-10 reps · S2: 12 reps<br>🎯 Rest pause permitido · codos fijos</div></div><div class="ex-check" id="chk-d0e5" onclick="toggleCheck(event,'d0e5')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (kg)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="2.5" id="d0e5-0-p"><input type="number" placeholder="—" min="0" max="30" id="d0e5-0-r"><select id="d0e5-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e5',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="2.5" id="d0e5-1-p"><input type="number" placeholder="—" min="0" max="30" id="d0e5-1-r"><select id="d0e5-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e5',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas · ¿Rest pause?</div><textarea id="d0e5-notes" placeholder="Ej: 25kg · 6 reps + rest pause 10s + 2 + rest pause 10s + 2..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 07 Elevaciones de Piernas Abs -->
+  <div class="ex-card" id="d0e6">
+    <div class="ex-header" onclick="toggleCard('d0e6')"><span class="ex-num">07</span><div class="ex-info"><div class="ex-name">Elevaciones de Piernas (Abs)</div><div class="ex-hint">3 series al fallo técnico<br>🎯 Sin balanceo · core activado todo el tiempo</div></div><div class="ex-check" id="chk-d0e6" onclick="toggleCheck(event,'d0e6')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">—</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" disabled style="opacity:0.2;cursor:not-allowed"><input type="number" placeholder="—" min="0" max="50" id="d0e6-0-r"><select id="d0e6-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e6',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" disabled style="opacity:0.2;cursor:not-allowed"><input type="number" placeholder="—" min="0" max="50" id="d0e6-1-r"><select id="d0e6-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e6',1)">○</button></div>
+        <div class="set-row"><div class="set-n">S3</div><input type="number" placeholder="—" disabled style="opacity:0.2;cursor:not-allowed"><input type="number" placeholder="—" min="0" max="50" id="d0e6-2-r"><select id="d0e6-2-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d0e6',2)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas</div><textarea id="d0e6-notes" placeholder="Ej: fallo técnico en rep 12, buena activación abdominal..."></textarea></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DAY 1 · MARTES · PIERNA A ════ -->
+<div class="day-panel" id="day-1">
+  <div class="day-header" style="border-left-color:var(--acc3)">
+    <div class="day-title" style="color:var(--acc3)">MARTES — PIERNA A</div>
+    <div class="day-sub">Enfoque Cuádriceps · Separación y Cortes</div>
+    <div class="day-focus" style="color:var(--acc3)">FOCO › Volumen + Detalle Quad</div>
+  </div>
+
+  <!-- 01 Sentadilla Smith -->
+  <div class="ex-card" id="d1e0">
+    <div class="ex-header" onclick="toggleCard('d1e0')"><span class="ex-num">01</span><div class="ex-info"><div class="ex-name">Sentadilla Smith Machine</div><div class="ex-hint">2 series · S1: 8-10 reps · S2: 10-12 reps<br>🔒 Descanso 3 min entre series · bajada controlada</div></div><div class="ex-check" id="chk-d1e0" onclick="toggleCheck(event,'d1e0')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (kg)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="5" id="d1e0-0-p"><input type="number" placeholder="—" min="0" max="30" id="d1e0-0-r"><select id="d1e0-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d1e0',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="5" id="d1e0-1-p"><input type="number" placeholder="—" min="0" max="30" id="d1e0-1-r"><select id="d1e0-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d1e0',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas · ¿Reps lentas post-descanso?</div><textarea id="d1e0-notes" placeholder="Ej: 100kg rir0 · + descanso 3min + 6 reps lentas rir0..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 02 Extensiones Cuádriceps -->
+  <div class="ex-card" id="d1e1">
+    <div class="ex-header" onclick="toggleCard('d1e1')"><span class="ex-num">02</span><div class="ex-info"><div class="ex-name">Extensiones de Cuádriceps (Máquina)</div><div class="ex-hint">2 series · S1: 10-12 reps · S2: 12-15 reps<br>🎯 Isométrica 5 seg al final de S2 · contracción máxima</div></div><div class="ex-check" id="chk-d1e1" onclick="toggleCheck(event,'d1e1')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (lb)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="5" id="d1e1-0-p"><input type="number" placeholder="—" min="0" max="30" id="d1e1-0-r"><select id="d1e1-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d1e1',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="5" id="d1e1-1-p"><input type="number" placeholder="—" min="0" max="30" id="d1e1-1-r"><select id="d1e1-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d1e1',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas · Isométrica S2</div><textarea id="d1e1-notes" placeholder="Ej: 165lb · S2: 15 reps + isométrica 5seg 120lb..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 03 Pantorrilla de Pie x3 -->
+  <div class="ex-card" id="d1e2">
+    <div class="ex-header" onclick="toggleCard('d1e2')"><span class="ex-num">03</span><div class="ex-info"><div class="ex-name">Pantorrilla de Pie (Máquina)</div><div class="ex-hint">3 series · 12-15 reps · Pausa 2 seg abajo<br>🎯 Rango completo · sin rebotar · talón abajo</div></div><div class="ex-check" id="chk-d1e2" onclick="toggleCheck(event,'d1e2')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (lb)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="5" id="d1e2-0-p"><input type="number" placeholder="—" min="0" max="30" id="d1e2-0-r"><select id="d1e2-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d1e2',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="5" id="d1e2-1-p"><input type="number" placeholder="—" min="0" max="30" id="d1e2-1-r"><select id="d1e2-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d1e2',1)">○</button></div>
+        <div class="set-row"><div class="set-n">S3</div><input type="number" placeholder="—" min="0" step="5" id="d1e2-2-p"><input type="number" placeholder="—" min="0" max="30" id="d1e2-2-r"><select id="d1e2-2-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d1e2',2)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas · ¿Rest pause en S3?</div><textarea id="d1e2-notes" placeholder="Ej: 175lb · S3: 6 reps + rest pause 30s + 10 reps rir0..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 04 Curl Martillo -->
+  <div class="ex-card" id="d1e3">
+    <div class="ex-header" onclick="toggleCard('d1e3')"><span class="ex-num">04</span><div class="ex-info"><div class="ex-name">Curl de Martillo (Mancuernas)</div><div class="ex-hint">2 series · S1: 10-12 reps · S2: 12-15 reps<br>🎯 Palmas neutras · codos fijos · sin balanceo</div></div><div class="ex-check" id="chk-d1e3" onclick="toggleCheck(event,'d1e3')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (kg)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="1" id="d1e3-0-p"><input type="number" placeholder="—" min="0" max="30" id="d1e3-0-r"><select id="d1e3-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d1e3',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="1" id="d1e3-1-p"><input type="number" placeholder="—" min="0" max="30" id="d1e3-1-r"><select id="d1e3-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d1e3',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas</div><textarea id="d1e3-notes" placeholder="Ej: 17.5kg · S1: 10 reps rir0 · S2: 11 reps rir0..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 05 Plancha + Elevaciones Circuito -->
+  <div class="ex-card" id="d1e4">
+    <div class="ex-header" onclick="toggleCard('d1e4')"><span class="ex-num">05</span><div class="ex-info"><div class="ex-name">Elev. Piernas con Peso + Plancha (Circuito)</div><div class="ex-hint">3 series · Elevaciones con lastre → plancha 1 min<br>🎯 Sin descanso entre los dos · cadera firme en plancha</div></div><div class="ex-check" id="chk-d1e4" onclick="toggleCheck(event,'d1e4')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (lb)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="5" id="d1e4-0-p"><input type="number" placeholder="—" min="0" max="30" id="d1e4-0-r"><select id="d1e4-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d1e4',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="5" id="d1e4-1-p"><input type="number" placeholder="—" min="0" max="30" id="d1e4-1-r"><select id="d1e4-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d1e4',1)">○</button></div>
+        <div class="set-row"><div class="set-n">S3</div><input type="number" placeholder="—" min="0" step="5" id="d1e4-2-p"><input type="number" placeholder="—" min="0" max="30" id="d1e4-2-r"><select id="d1e4-2-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d1e4',2)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas · Tiempo plancha</div><textarea id="d1e4-notes" placeholder="Ej: S1: 9 reps 100lb + plancha 1:10min · S2: 8 reps 50lb..."></textarea></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DAY 2 · MIÉRCOLES · CARDIO ════ -->
+<div class="day-panel" id="day-2">
+  <div class="day-header" style="border-left-color:var(--warm)">
+    <div class="day-title" style="color:var(--warm)">MIÉRCOLES — CARDIO HIIT</div>
+    <div class="day-sub">Alta Intensidad · 10-15 minutos</div>
+    <div class="day-focus" style="color:var(--warm)">FOCO › Acondicionamiento + Quema</div>
+  </div>
+  <div class="cardio-card">
+    <div class="cardio-title">⚡ SESIÓN DE CARDIO</div>
+    <div class="cardio-grid">
+      <div class="field-g"><div class="field-l">MODALIDAD</div>
+        <select id="d2-modalidad" style="font-size:11px;text-align:left;padding:9px 6px">
+          <option value="">Selecciona...</option>
+          <option>Sprints en caminadora</option>
+          <option>Bicicleta estacionaria</option>
+          <option>Elíptica HIIT</option>
+          <option>Saltar cuerda</option>
+          <option>Remo ergómetro</option>
+          <option>Caminadora inclinada</option>
+        </select>
+      </div>
+      <div class="field-g"><div class="field-l">DURACIÓN (min)</div><input type="number" placeholder="0" min="0" max="60" id="d2-duracion"></div>
+      <div class="field-g"><div class="field-l">INTENSIDAD</div>
+        <select id="d2-intensidad" style="font-size:11px;text-align:left;padding:9px 6px">
+          <option value="">Selecciona...</option>
+          <option>Alta (difícil hablar)</option>
+          <option>Media-Alta</option>
+          <option>Media</option>
+        </select>
+      </div>
+      <div class="field-g"><div class="field-l">RPE (1-10)</div><input type="number" placeholder="0" min="1" max="10" id="d2-rpe"></div>
+    </div>
+    <div class="timer-row">
+      <div class="timer-disp" id="cardioDisp">00:00</div>
+      <button class="timer-btn" id="timerBtn" onclick="toggleTimer()">▶ START</button>
+      <button class="timer-btn" onclick="resetTimer()">↺ RESET</button>
+    </div>
+  </div>
+  <div class="cardio-card">
+    <div class="cardio-title">📋 PROTOCOLO HIIT</div>
+    <div class="cardio-proto">
+1. Calentamiento 2 min ritmo cómodo
+2. Sprint 30 seg máxima intensidad
+3. Recuperación 1 min ritmo suave
+4. Repetir × 6-8 rondas
+5. Enfriamiento 2 min caminata suave
+    </div>
+    <div class="ex-notes-wrap" style="padding:12px 0 0">
+      <div class="notes-lbl">Sensaciones post-cardio</div>
+      <textarea id="d2-notes" placeholder="Ej: 7 rondas completas, RPE 8, bien recuperado..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DAY 3 · JUEVES · TORSO B ════ -->
+<div class="day-panel" id="day-3">
+  <div class="day-header">
+    <div class="day-title">JUEVES — TORSO B</div>
+    <div class="day-sub">Hombros · Brazos · Detalle Estético</div>
+    <div class="day-focus">FOCO › Deltoides + Pecho + Brazos</div>
+  </div>
+
+  <!-- 01 Press Militar -->
+  <div class="ex-card" id="d3e0">
+    <div class="ex-header" onclick="toggleCard('d3e0')"><span class="ex-num">01</span><div class="ex-info"><div class="ex-name">Press Militar (Máquina o Mancuerna)</div><div class="ex-hint">2 series · S1: 8-10 reps · S2: 12 reps<br>🔒 Sin arquear lumbar · codos 90° en bajada</div></div><div class="ex-check" id="chk-d3e0" onclick="toggleCheck(event,'d3e0')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (lb)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="5" id="d3e0-0-p"><input type="number" placeholder="—" min="0" max="30" id="d3e0-0-r"><select id="d3e0-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e0',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="5" id="d3e0-1-p"><input type="number" placeholder="—" min="0" max="30" id="d3e0-1-r"><select id="d3e0-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e0',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas</div><textarea id="d3e0-notes" placeholder="Ej: 100lb S1: 9 reps rir0 · S2: 12 reps 60lb..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 02 Press Banca Barra Libre -->
+  <div class="ex-card" id="d3e1">
+    <div class="ex-header" onclick="toggleCard('d3e1')"><span class="ex-num">02</span><div class="ex-info"><div class="ex-name">Press en Banco con Barra Libre</div><div class="ex-hint">2 series · S1: 10-12 reps · S2: 10-12 reps<br>🎯 Rest pause permitido en S1 · hombros atrás</div></div><div class="ex-check" id="chk-d3e1" onclick="toggleCheck(event,'d3e1')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (kg)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="2.5" id="d3e1-0-p"><input type="number" placeholder="—" min="0" max="30" id="d3e1-0-r"><select id="d3e1-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e1',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="2.5" id="d3e1-1-p"><input type="number" placeholder="—" min="0" max="30" id="d3e1-1-r"><select id="d3e1-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e1',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas · Rest pause S1</div><textarea id="d3e1-notes" placeholder="Ej: 80kg · 5 reps + rest pause 7s + 2 reps + rest pause 1:30min..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 03 Remo Mancuerna -->
+  <div class="ex-card" id="d3e2">
+    <div class="ex-header" onclick="toggleCard('d3e2')"><span class="ex-num">03</span><div class="ex-info"><div class="ex-name">Remo con Mancuerna</div><div class="ex-hint">2 series · S1: 10 reps · S2: 10-12 reps<br>🎯 Retracción escapular · espalda paralela al piso</div></div><div class="ex-check" id="chk-d3e2" onclick="toggleCheck(event,'d3e2')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (kg)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="2.5" id="d3e2-0-p"><input type="number" placeholder="—" min="0" max="30" id="d3e2-0-r"><select id="d3e2-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e2',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="2.5" id="d3e2-1-p"><input type="number" placeholder="—" min="0" max="30" id="d3e2-1-r"><select id="d3e2-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e2',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas</div><textarea id="d3e2-notes" placeholder="Ej: 27.5kg · S1: 10 reps rir0 · S2: 11 reps 20kg rir1..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 04 Curl Predicador -->
+  <div class="ex-card" id="d3e3">
+    <div class="ex-header" onclick="toggleCard('d3e3')"><span class="ex-num">04</span><div class="ex-info"><div class="ex-name">Curl Predicador en Máquina (Bíceps)</div><div class="ex-hint">2 series · 6-8 reps · Codo fijo en almohadilla<br>🎯 Bajada 3 seg · sin despegar el codo</div></div><div class="ex-check" id="chk-d3e3" onclick="toggleCheck(event,'d3e3')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (lb)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="5" id="d3e3-0-p"><input type="number" placeholder="—" min="0" max="30" id="d3e3-0-r"><select id="d3e3-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e3',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="5" id="d3e3-1-p"><input type="number" placeholder="—" min="0" max="30" id="d3e3-1-r"><select id="d3e3-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e3',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas</div><textarea id="d3e3-notes" placeholder="Ej: S1: 80lb 6 reps rir0 · S2: 45lb + 3 reps 40lb rir0..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 05 Elevaciones Laterales x3 -->
+  <div class="ex-card" id="d3e4">
+    <div class="ex-header" onclick="toggleCard('d3e4')"><span class="ex-num">05</span><div class="ex-info"><div class="ex-name">Elevaciones Laterales (Pump)</div><div class="ex-hint">3 series · 15-20 reps · Enfoque en bombeo<br>🎯 Peso moderado · forma perfecta · codos suaves</div></div><div class="ex-check" id="chk-d3e4" onclick="toggleCheck(event,'d3e4')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (lb)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="5" id="d3e4-0-p"><input type="number" placeholder="—" min="0" max="30" id="d3e4-0-r"><select id="d3e4-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e4',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="5" id="d3e4-1-p"><input type="number" placeholder="—" min="0" max="30" id="d3e4-1-r"><select id="d3e4-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e4',1)">○</button></div>
+        <div class="set-row"><div class="set-n">S3</div><input type="number" placeholder="—" min="0" step="5" id="d3e4-2-p"><input type="number" placeholder="—" min="0" max="30" id="d3e4-2-r"><select id="d3e4-2-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e4',2)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas</div><textarea id="d3e4-notes" placeholder="Ej: S1-S2: 115lb · S3 back-off: 90lb 15 reps rir0..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 06 Skull Crushers / Pushdown -->
+  <div class="ex-card" id="d3e5">
+    <div class="ex-header" onclick="toggleCard('d3e5')"><span class="ex-num">06</span><div class="ex-info"><div class="ex-name">Pushdown / Skull Crushers (Tríceps)</div><div class="ex-hint">2 series · S1: 8-10 reps · S2: 12 reps<br>🎯 Extensión completa · codos sin abrir</div></div><div class="ex-check" id="chk-d3e5" onclick="toggleCheck(event,'d3e5')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (lb)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="2.5" id="d3e5-0-p"><input type="number" placeholder="—" min="0" max="30" id="d3e5-0-r"><select id="d3e5-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e5',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="2.5" id="d3e5-1-p"><input type="number" placeholder="—" min="0" max="30" id="d3e5-1-r"><select id="d3e5-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e5',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas</div><textarea id="d3e5-notes" placeholder="Ej: 57.5lb S1: 9 reps rir0 · S2: 42.5lb 11 reps rir0..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 07 Face Pulls x3 -->
+  <div class="ex-card" id="d3e6">
+    <div class="ex-header" onclick="toggleCard('d3e6')"><span class="ex-num">07</span><div class="ex-info"><div class="ex-name">Face Pulls en Polea (Salud Hombro)</div><div class="ex-hint">3 series · 15 reps · Cuerda al nivel de ojos<br>🛡️ Preventivo obligatorio · rotación externa completa</div></div><div class="ex-check" id="chk-d3e6" onclick="toggleCheck(event,'d3e6')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (lb/kg)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="2.5" id="d3e6-0-p"><input type="number" placeholder="—" min="0" max="30" id="d3e6-0-r"><select id="d3e6-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e6',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="2.5" id="d3e6-1-p"><input type="number" placeholder="—" min="0" max="30" id="d3e6-1-r"><select id="d3e6-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e6',1)">○</button></div>
+        <div class="set-row"><div class="set-n">S3</div><input type="number" placeholder="—" min="0" step="2.5" id="d3e6-2-p"><input type="number" placeholder="—" min="0" max="30" id="d3e6-2-r"><select id="d3e6-2-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e6',2)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas</div><textarea id="d3e6-notes" placeholder="Ej: S1: 30lb 15 reps rir4 · S2: 35lb rir2 · S3: 35lb rir2..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 08 Lagartijas -->
+  <div class="ex-card" id="d3e7">
+    <div class="ex-header" onclick="toggleCard('d3e7')"><span class="ex-num">08</span><div class="ex-info"><div class="ex-name">Lagartijas (Push-ups)</div><div class="ex-hint">1-2 series · al fallo o hasta RIR 1-2<br>🎯 Pecho tocando el piso · codos 45°</div></div><div class="ex-check" id="chk-d3e7" onclick="toggleCheck(event,'d3e7')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">—</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" disabled style="opacity:0.2;cursor:not-allowed"><input type="number" placeholder="—" min="0" max="50" id="d3e7-0-r"><select id="d3e7-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e7',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" disabled style="opacity:0.2;cursor:not-allowed"><input type="number" placeholder="—" min="0" max="50" id="d3e7-1-r"><select id="d3e7-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d3e7',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas</div><textarea id="d3e7-notes" placeholder="Ej: 13 reps rir2 · buena conexión pectoral..."></textarea></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DAY 4 · VIERNES · PIERNA B ════ -->
+<div class="day-panel" id="day-4">
+  <div class="day-header" style="border-left-color:var(--acc3)">
+    <div class="day-title" style="color:var(--acc3)">VIERNES — PIERNA B</div>
+    <div class="day-sub">Cadena Posterior · Glúteo · Femoral</div>
+    <div class="day-focus" style="color:var(--acc3)">FOCO › Grosor Posterior + Fuerza</div>
+  </div>
+
+  <!-- 01 RDL -->
+  <div class="ex-card" id="d4e0">
+    <div class="ex-header" onclick="toggleCard('d4e0')"><span class="ex-num">01</span><div class="ex-info"><div class="ex-name">Peso Muerto Rumano (RDL)</div><div class="ex-hint">2 series · S1: 8-10 reps · S2: 12 reps<br>🔒 Excéntrica controlada · espalda neutral · isquios</div></div><div class="ex-check" id="chk-d4e0" onclick="toggleCheck(event,'d4e0')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (kg)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="5" id="d4e0-0-p"><input type="number" placeholder="—" min="0" max="30" id="d4e0-0-r"><select id="d4e0-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d4e0',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="5" id="d4e0-1-p"><input type="number" placeholder="—" min="0" max="30" id="d4e0-1-r"><select id="d4e0-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d4e0',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas</div><textarea id="d4e0-notes" placeholder="Ej: S1: 100kg 9 reps rir1 · S2: 70kg 12 reps rir2..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 02 Hip Thrust -->
+  <div class="ex-card" id="d4e1">
+    <div class="ex-header" onclick="toggleCard('d4e1')"><span class="ex-num">02</span><div class="ex-info"><div class="ex-name">Hip Thrust en Banco</div><div class="ex-hint">2 series · S1: 10-12 reps · S2: 12-15 reps · RIR 0-1<br>🎯 Pausa 1 seg arriba · glúteo apretado · barbilla al pecho</div></div><div class="ex-check" id="chk-d4e1" onclick="toggleCheck(event,'d4e1')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (kg)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="5" id="d4e1-0-p"><input type="number" placeholder="—" min="0" max="30" id="d4e1-0-r"><select id="d4e1-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d4e1',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="5" id="d4e1-1-p"><input type="number" placeholder="—" min="0" max="30" id="d4e1-1-r"><select id="d4e1-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d4e1',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas</div><textarea id="d4e1-notes" placeholder="Ej: 80kg 12 reps rir1 · buena activación glúteo..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 03 Curl Femoral -->
+  <div class="ex-card" id="d4e2">
+    <div class="ex-header" onclick="toggleCard('d4e2')"><span class="ex-num">03</span><div class="ex-info"><div class="ex-name">Curl Femoral Sentado/Acostado (Máquina)</div><div class="ex-hint">2 series · S1: 8-10 reps · S2: 15 reps + Parciales<br>🎯 Excéntrica 2 seg · contracción en la parte alta</div></div><div class="ex-check" id="chk-d4e2" onclick="toggleCheck(event,'d4e2')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (lb)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="5" id="d4e2-0-p"><input type="number" placeholder="—" min="0" max="30" id="d4e2-0-r"><select id="d4e2-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d4e2',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="5" id="d4e2-1-p"><input type="number" placeholder="—" min="0" max="30" id="d4e2-1-r"><select id="d4e2-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d4e2',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas · Parciales S2</div><textarea id="d4e2-notes" placeholder="Ej: S1: 160lb 9 reps rir0 · S2: 15 reps + parciales en micro..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 04 Pantorrilla x3 -->
+  <div class="ex-card" id="d4e3">
+    <div class="ex-header" onclick="toggleCard('d4e3')"><span class="ex-num">04</span><div class="ex-info"><div class="ex-name">Pantorrilla de Pie (Máquina)</div><div class="ex-hint">3 series · 15 reps · Pausa 2 seg abajo<br>🎯 Rango completo · sin rebotar</div></div><div class="ex-check" id="chk-d4e3" onclick="toggleCheck(event,'d4e3')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (lb)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="5" id="d4e3-0-p"><input type="number" placeholder="—" min="0" max="30" id="d4e3-0-r"><select id="d4e3-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d4e3',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="5" id="d4e3-1-p"><input type="number" placeholder="—" min="0" max="30" id="d4e3-1-r"><select id="d4e3-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d4e3',1)">○</button></div>
+        <div class="set-row"><div class="set-n">S3</div><input type="number" placeholder="—" min="0" step="5" id="d4e3-2-p"><input type="number" placeholder="—" min="0" max="30" id="d4e3-2-r"><select id="d4e3-2-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d4e3',2)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas</div><textarea id="d4e3-notes" placeholder="Ej: 175lb · 15 reps pausa 2 seg abajo..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 05 Curl Inverso + Dead Hang -->
+  <div class="ex-card" id="d4e4">
+    <div class="ex-header" onclick="toggleCard('d4e4')"><span class="ex-num">05</span><div class="ex-info"><div class="ex-name">Curl Inverso (Antebrazo)</div><div class="ex-hint">2 series · 15 reps · Biserie con Dead Hang<br>🎯 Curl inverso → colgado sin soltar · agarre fuerte</div></div><div class="ex-check" id="chk-d4e4" onclick="toggleCheck(event,'d4e4')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">PESO (lb)</div><div class="col-h">REPS</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" min="0" step="2.5" id="d4e4-0-p"><input type="number" placeholder="—" min="0" max="30" id="d4e4-0-r"><select id="d4e4-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d4e4',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" min="0" step="2.5" id="d4e4-1-p"><input type="number" placeholder="—" min="0" max="30" id="d4e4-1-r"><select id="d4e4-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d4e4',1)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas · Dead Hang (segundos)</div><textarea id="d4e4-notes" placeholder="Ej: S1: 12 reps + 30s colgado · S2: 15 reps rir0 + colgado..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- 06 Dead Hang -->
+  <div class="ex-card" id="d4e5">
+    <div class="ex-header" onclick="toggleCard('d4e5')"><span class="ex-num">06</span><div class="ex-info"><div class="ex-name">Dead Hang (Colgado — Agarre)</div><div class="ex-hint">3 series al fallo de agarre<br>🎯 Escapular activa · respira · aguanta hasta el fallo</div></div><div class="ex-check" id="chk-d4e5" onclick="toggleCheck(event,'d4e5')"></div><span class="ex-chevron">▼</span></div>
+    <div class="ex-body">
+      <div class="series-wrap"><div class="series-lbl">▸ SERIES</div><div class="col-heads"><div class="col-h">SET</div><div class="col-h">—</div><div class="col-h">SEG</div><div class="col-h">RIR</div><div class="col-h">✓</div></div>
+        <div class="set-row"><div class="set-n">S1</div><input type="number" placeholder="—" disabled style="opacity:0.2;cursor:not-allowed"><input type="number" placeholder="—" min="0" max="300" id="d4e5-0-r"><select id="d4e5-0-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d4e5',0)">○</button></div>
+        <div class="set-row"><div class="set-n">S2</div><input type="number" placeholder="—" disabled style="opacity:0.2;cursor:not-allowed"><input type="number" placeholder="—" min="0" max="300" id="d4e5-1-r"><select id="d4e5-1-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d4e5',1)">○</button></div>
+        <div class="set-row"><div class="set-n">S3</div><input type="number" placeholder="—" disabled style="opacity:0.2;cursor:not-allowed"><input type="number" placeholder="—" min="0" max="300" id="d4e5-2-r"><select id="d4e5-2-rir"><option value="">-</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select><button class="set-ok" onclick="setDone(this,'d4e5',2)">○</button></div>
+      </div>
+      <div class="ex-notes-wrap"><div class="notes-lbl">Notas</div><textarea id="d4e5-notes" placeholder="Ej: S1: 30s · S2: 25s · agarre derecha falló primero..."></textarea></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <button class="btn-finish" onclick="finishSession()">⬡ FINALIZAR SESIÓN</button>
+  <button class="btn-copy" onclick="openModal()" title="Ver resumen">📋</button>
+</div>
+
+<!-- REST TIMER -->
+<div class="rest-pop" id="restPop">
+  <div class="rest-lbl">DESCANSO</div>
+  <div class="rest-num" id="restNum">90</div>
+  <div class="rest-skip" onclick="skipRest()">▶ SALTAR</div>
+</div>
+
+<!-- SUMMARY MODAL -->
+<div class="modal-bg" id="modalBg" onclick="bgClose(event)">
+  <div class="modal">
+    <div class="modal-title">⬡ RESUMEN — COPIAR PARA WHATSAPP</div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions">
+      <button class="m-btn prim" onclick="copySum()">📋 COPIAR</button>
+      <button class="m-btn sec" onclick="closeModal()">✕ CERRAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+<script>
+// ═══════════════════════════════════════════
+// CONFIG — IDs por día (3 series donde aplica)
+// ═══════════════════════════════════════════
+const DAY_EX = [
+  ['d0e0','d0e1','d0e2','d0e3','d0e4','d0e5','d0e6'], // Lunes
+  ['d1e0','d1e1','d1e2','d1e3','d1e4'],                // Martes
+  [],                                                   // Miércoles cardio
+  ['d3e0','d3e1','d3e2','d3e3','d3e4','d3e5','d3e6','d3e7'], // Jueves
+  ['d4e0','d4e1','d4e2','d4e3','d4e4','d4e5']          // Viernes
+];
+
+// Número de series por ejercicio (default 2, declarar solo los de 3)
+const EX_SETS = {
+  d0e3:3, d0e4:3, d0e6:3,
+  d1e2:3, d1e4:3,
+  d3e4:3, d3e6:3, d3e7:2,
+  d4e3:3, d4e5:3
+};
+
+const DAY_NAMES = [
+  'LUNES — TORSO A',
+  'MARTES — PIERNA A',
+  'MIÉRCOLES — CARDIO HIIT',
+  'JUEVES — TORSO B',
+  'VIERNES — PIERNA B'
+];
+
+const EX_NAMES = {
+  d0e0:'Press Inclinado con Mancuernas', d0e1:'Jalón al Pecho',
+  d0e2:'Remo con Apoyo', d0e3:'Elevaciones Laterales Máquina',
+  d0e4:'Katana Tríceps (Polea)', d0e5:'Curl EZ', d0e6:'Elevaciones de Piernas',
+  d1e0:'Sentadilla Smith Machine', d1e1:'Extensiones de Cuádriceps',
+  d1e2:'Pantorrilla de Pie', d1e3:'Curl de Martillo', d1e4:'Elev. Piernas + Plancha',
+  d3e0:'Press Militar', d3e1:'Press Banca Barra Libre', d3e2:'Remo con Mancuerna',
+  d3e3:'Curl Predicador', d3e4:'Elevaciones Laterales Pump',
+  d3e5:'Pushdown / Skull Crushers', d3e6:'Face Pulls', d3e7:'Lagartijas',
+  d4e0:'Peso Muerto Rumano (RDL)', d4e1:'Hip Thrust',
+  d4e2:'Curl Femoral', d4e3:'Pantorrilla de Pie', d4e4:'Curl Inverso', d4e5:'Dead Hang'
+};
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let cDay = 0, cWeek = 1;
+let timerSecs = 0, timerOn = false, timerIv = null;
+let restSecs = 0, restIv = null;
+
+// ═══════════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════════
+function sKey() { return 'wo_w' + cWeek + '_d' + cDay; }
+
+function getSets(ex) { return EX_SETS[ex] || 2; }
+
+function saveAll() {
+  const dot = document.getElementById('saveDot');
+  dot.className = 'save-dot saving';
+  const data = {};
+
+  DAY_EX[cDay].forEach(ex => {
+    data[ex] = {};
+    const nSets = getSets(ex);
+    for (let s = 0; s < nSets; s++) {
+      const pEl = document.getElementById(ex+'-'+s+'-p');
+      const rEl = document.getElementById(ex+'-'+s+'-r');
+      const rirEl = document.getElementById(ex+'-'+s+'-rir');
+      data[ex]['s'+s] = {
+        p: pEl ? pEl.value : '',
+        r: rEl ? rEl.value : '',
+        rir: rirEl ? rirEl.value : ''
+      };
+    }
+    const notesEl = document.getElementById(ex+'-notes');
+    data[ex].notes = notesEl ? notesEl.value : '';
+    const chk = document.getElementById('chk-'+ex);
+    data[ex].checked = chk ? chk.classList.contains('done') : false;
+    const card = document.getElementById(ex);
+    data[ex].open = card ? card.classList.contains('open') : false;
+  });
+
+  data._setDone = {};
+  document.querySelectorAll('.set-ok.on').forEach(btn => {
+    if (btn.dataset.key) data._setDone[btn.dataset.key] = true;
+  });
+
+  if (cDay === 2) {
+    data._cardio = {
+      modalidad: val('d2-modalidad'), duracion: val('d2-duracion'),
+      intensidad: val('d2-intensidad'), rpe: val('d2-rpe'), notes: val('d2-notes')
+    };
+  }
+
+  try {
+    localStorage.setItem(sKey(), JSON.stringify(data));
+    localStorage.setItem('wo_curWeek', cWeek);
+    localStorage.setItem('wo_curDay', cDay);
+    const t = new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('savedTime').textContent = 'guardado ' + t;
+  } catch(e) {}
+
+  setTimeout(() => { dot.className = 'save-dot saved'; }, 400);
+}
+
+function loadAll() {
+  let raw;
+  try { raw = localStorage.getItem(sKey()); } catch(e) {}
+  if (!raw) return;
+  let data;
+  try { data = JSON.parse(raw); } catch(e) { return; }
+
+  DAY_EX[cDay].forEach(ex => {
+    if (!data[ex]) return;
+    const nSets = getSets(ex);
+    for (let s = 0; s < nSets; s++) {
+      const sd = data[ex]['s'+s];
+      if (!sd) continue;
+      setVal(ex+'-'+s+'-p', sd.p);
+      setVal(ex+'-'+s+'-r', sd.r);
+      setSelectVal(ex+'-'+s+'-rir', sd.rir);
+    }
+    setVal(ex+'-notes', data[ex].notes || '');
+    if (data[ex].checked) {
+      const chk = document.getElementById('chk-'+ex);
+      const card = document.getElementById(ex);
+      if (chk) chk.classList.add('done');
+      if (card) card.classList.add('completed');
+    }
+    if (data[ex].open) {
+      const card = document.getElementById(ex);
+      if (card) card.classList.add('open');
+    }
+  });
+
+  if (data._setDone) {
+    document.querySelectorAll('.set-ok').forEach(btn => {
+      if (btn.dataset.key && data._setDone[btn.dataset.key]) {
+        btn.classList.add('on'); btn.textContent = '✓';
+      }
+    });
+  }
+
+  if (cDay === 2 && data._cardio) {
+    setSelectVal('d2-modalidad', data._cardio.modalidad);
+    setVal('d2-duracion', data._cardio.duracion);
+    setSelectVal('d2-intensidad', data._cardio.intensidad);
+    setVal('d2-rpe', data._cardio.rpe);
+    setVal('d2-notes', data._cardio.notes);
+  }
+
+  updateProgress(); updateTabs();
+}
+
+function val(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+function setVal(id, v) { const el = document.getElementById(id); if (el && v !== undefined && v !== null) el.value = v; }
+function setSelectVal(id, v) {
+  const el = document.getElementById(id);
+  if (!el || v === undefined || v === null) return;
+  for (let i = 0; i < el.options.length; i++) {
+    if (el.options[i].value === v || el.options[i].text === v) { el.selectedIndex = i; return; }
+  }
+}
+
+let saveTimer = null;
+function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(saveAll, 600); }
+document.addEventListener('input', scheduleSave);
+document.addEventListener('change', scheduleSave);
+document.addEventListener('visibilitychange', () => { if (document.hidden) saveAll(); });
+window.addEventListener('pagehide', saveAll);
+
+// ═══════════════════════════════════════════
+// SET-DONE KEYS
+// ═══════════════════════════════════════════
+function assignSetKeys() {
+  document.querySelectorAll('.set-ok').forEach(btn => {
+    const onclick = btn.getAttribute('onclick') || '';
+    const m = onclick.match(/setDone\(this,'([^']+)',(\d+)\)/);
+    if (m) btn.dataset.key = m[1] + '_s' + m[2];
+  });
+}
+
+// ═══════════════════════════════════════════
+// UI INTERACTIONS
+// ═══════════════════════════════════════════
+function toggleCard(id) {
+  const card = document.getElementById(id);
+  if (!card) return;
+  card.classList.toggle('open');
+  scheduleSave();
+}
+
+function toggleCheck(e, id) {
+  e.stopPropagation();
+  const chk = document.getElementById('chk-' + id);
+  const card = document.getElementById(id);
+  if (!chk || !card) return;
+  const done = chk.classList.toggle('done');
+  card.classList.toggle('completed', done);
+  updateProgress(); updateTabs(); scheduleSave();
+}
+
+function setDone(btn, ex, setIdx) {
+  const key = ex + '_s' + setIdx;
+  btn.dataset.key = key;
+  const on = btn.classList.toggle('on');
+  btn.textContent = on ? '✓' : '○';
+  if (on) startRest(90);
+  scheduleSave();
+}
+
+function updateProgress() {
+  const panel = document.getElementById('day-' + cDay);
+  if (!panel) return;
+  const all = panel.querySelectorAll('.ex-check');
+  const done = panel.querySelectorAll('.ex-check.done');
+  const pct = all.length ? Math.round(done.length / all.length * 100) : 0;
+  document.getElementById('progFill').style.width = pct + '%';
+}
+
+function updateTabs() {
+  document.querySelectorAll('.day-tab').forEach((tab, i) => {
+    const panel = document.getElementById('day-' + i);
+    if (!panel) return;
+    const all = panel.querySelectorAll('.ex-check');
+    const done = panel.querySelectorAll('.ex-check.done');
+    tab.classList.toggle('done', all.length > 0 && done.length === all.length);
+  });
+}
+
+function switchDay(idx) {
+  saveAll(); cDay = idx;
+  document.querySelectorAll('.day-panel').forEach((p,i) => p.classList.toggle('active', i === idx));
+  document.querySelectorAll('.day-tab').forEach((t,i) => t.classList.toggle('active', i === idx));
+  loadAll();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function onWeekChange() {
+  saveAll();
+  cWeek = parseInt(document.getElementById('weekSel').value);
+  document.getElementById('weekBadge').textContent = 'S' + cWeek;
+  localStorage.setItem('wo_curWeek', cWeek);
+  clearUI(); loadAll();
+}
+
+function clearUI() {
+  document.querySelectorAll('.ex-check').forEach(c => c.classList.remove('done'));
+  document.querySelectorAll('.ex-card').forEach(c => c.classList.remove('completed','open'));
+  document.querySelectorAll('input[type="number"]').forEach(i => { if (!i.disabled) i.value = ''; });
+  document.querySelectorAll('select').forEach(s => { s.selectedIndex = 0; });
+  document.querySelectorAll('textarea').forEach(t => { t.value = ''; });
+  document.querySelectorAll('.set-ok').forEach(b => { b.classList.remove('on'); b.textContent = '○'; });
+  document.getElementById('progFill').style.width = '0%';
+  document.getElementById('savedTime').textContent = '';
+}
+
+// ═══════════════════════════════════════════
+// CARDIO TIMER
+// ═══════════════════════════════════════════
+function toggleTimer() {
+  const btn = document.getElementById('timerBtn');
+  if (timerOn) { clearInterval(timerIv); timerOn = false; btn.textContent = '▶ START'; }
+  else {
+    timerOn = true; btn.textContent = '⏸ PAUSE';
+    timerIv = setInterval(() => {
+      timerSecs++;
+      const m = String(Math.floor(timerSecs/60)).padStart(2,'0');
+      const s = String(timerSecs%60).padStart(2,'0');
+      document.getElementById('cardioDisp').textContent = m+':'+s;
+    }, 1000);
+  }
+}
+function resetTimer() {
+  clearInterval(timerIv); timerOn = false; timerSecs = 0;
+  document.getElementById('cardioDisp').textContent = '00:00';
+  document.getElementById('timerBtn').textContent = '▶ START';
+}
+
+// ═══════════════════════════════════════════
+// REST TIMER
+// ═══════════════════════════════════════════
+function startRest(secs) {
+  clearInterval(restIv); restSecs = secs;
+  const pop = document.getElementById('restPop');
+  document.getElementById('restNum').textContent = restSecs;
+  pop.classList.add('show');
+  restIv = setInterval(() => {
+    restSecs--;
+    document.getElementById('restNum').textContent = restSecs;
+    if (restSecs <= 0) skipRest();
+  }, 1000);
+}
+function skipRest() {
+  clearInterval(restIv);
+  document.getElementById('restPop').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════
+// SUMMARY
+// ═══════════════════════════════════════════
+function buildSummary() {
+  saveAll();
+  const now = new Date();
+  const ds = now.toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase();
+  const ts = now.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+
+  let t = '';
+  t += '🏋️ *WORKOUT OS — REGISTRO*\n';
+  t += '━━━━━━━━━━━━━━━━━━━━━━\n';
+  t += `📅 ${ds}\n🕐 ${ts}  |  *SEMANA ${cWeek}*\n`;
+  t += `💪 *${DAY_NAMES[cDay]}*\n`;
+  t += '━━━━━━━━━━━━━━━━━━━━━━\n\n';
+
+  if (cDay === 2) {
+    t += '⚡ *CARDIO HIIT*\n';
+    const m = val('d2-modalidad'); if (m) t += `• Modalidad: ${m}\n`;
+    const d = val('d2-duracion'); if (d) t += `• Duración: ${d} min\n`;
+    const in_ = val('d2-intensidad'); if (in_) t += `• Intensidad: ${in_}\n`;
+    const rpe = val('d2-rpe'); if (rpe) t += `• RPE: ${rpe}/10\n`;
+    const n = val('d2-notes'); if (n) t += `\n📝 ${n}\n`;
+  } else {
+    DAY_EX[cDay].forEach((ex, idx) => {
+      const name = EX_NAMES[ex] || ex;
+      const chk = document.getElementById('chk-'+ex);
+      const isDone = chk && chk.classList.contains('done');
+      t += `*${idx+1}. ${name}* ${isDone ? '✅' : ''}\n`;
+
+      const nSets = getSets(ex);
+      for (let s = 0; s < nSets; s++) {
+        const p = val(ex+'-'+s+'-p');
+        const r = val(ex+'-'+s+'-r');
+        const rir = val(ex+'-'+s+'-rir');
+        const setBtn = document.querySelector(`.set-ok[data-key="${ex}_s${s}"]`);
+        const setDoneStr = (setBtn && setBtn.classList.contains('on')) ? '✓' : '○';
+        const pesoStr = p ? p : '–';
+        const repsStr = r ? r : '–';
+        const rirStr = rir ? 'RIR '+rir : '–';
+        t += `  S${s+1}: ${pesoStr} × ${repsStr} | ${rirStr} ${setDoneStr}\n`;
+      }
+
+      const n = val(ex+'-notes');
+      if (n) t += `  📝 ${n}\n`;
+      t += '\n';
+    });
+  }
+
+  t += '━━━━━━━━━━━━━━━━━━━━━━\n';
+  t += `📊 Semana ${cWeek} · ${DAY_NAMES[cDay].split('—')[0].trim()}\n`;
+  t += '🔄 Registrado con WORKOUT OS\n';
+  t += '💡 Meta próxima: +2.5 kg o +1 rep';
+  return t;
+}
+
+function finishSession() { saveAll(); openModal(); }
+function openModal() {
+  document.getElementById('modalBody').textContent = buildSummary();
+  document.getElementById('modalBg').classList.add('show');
+}
+function closeModal() { document.getElementById('modalBg').classList.remove('show'); }
+function bgClose(e) { if (e.target === document.getElementById('modalBg')) closeModal(); }
+
+function copySum() {
+  const txt = document.getElementById('modalBody').textContent;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt)
+      .then(() => showToast('✓ COPIADO — PEGA EN WHATSAPP'))
+      .catch(() => fallbackCopy(txt));
+  } else { fallbackCopy(txt); }
+}
+function fallbackCopy(txt) {
+  const ta = document.createElement('textarea');
+  ta.value = txt; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); showToast('✓ COPIADO — PEGA EN WHATSAPP'); }
+  catch(e) { showToast('❌ Copia manual del texto'); }
+  document.body.removeChild(ta);
+}
+
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function closeBanner() {
+  document.getElementById('setupBanner').classList.remove('show');
+  try { localStorage.setItem('wo_bannerClosed', '1'); } catch(e) {}
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+(function init() {
+  try {
+    const w = parseInt(localStorage.getItem('wo_curWeek')) || 1;
+    const d = parseInt(localStorage.getItem('wo_curDay')) || 0;
+    cWeek = w; cDay = d;
+  } catch(e) {}
+
+  document.getElementById('weekSel').value = cWeek;
+  document.getElementById('weekBadge').textContent = 'S' + cWeek;
+  document.querySelectorAll('.day-tab').forEach((t,i) => t.classList.toggle('active', i === cDay));
+  document.querySelectorAll('.day-panel').forEach((p,i) => p.classList.toggle('active', i === cDay));
+
+  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+  let bannerClosed = false;
+  try { bannerClosed = localStorage.getItem('wo_bannerClosed') === '1'; } catch(e) {}
+  if (!isStandalone && !bannerClosed) {
+    document.getElementById('setupBanner').classList.add('show');
+  }
+
+  assignSetKeys();
+  loadAll();
+})();
+</script>
+</body>
+</html>
